@@ -1,0 +1,137 @@
+\documentclass[paper=a4, fontsize=11pt]{scrartcl} % A4 paper and 11pt font size
+
+\usepackage[T1]{fontenc} % Use 8-bit encoding that has 256 glyphs
+\usepackage{fourier} % Use the Adobe Utopia font for the document - comment this line to return to the LaTeX default
+\usepackage[english]{babel}
+\usepackage{amsmath} % Math packages
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage{lipsum} % Used for inserting dummy 'Lorem ipsum' text into the template
+\usepackage{graphicx}
+\usepackage{sectsty} % Allows customizing section commands
+\usepackage{fancyhdr}
+\allsectionsfont{\centering \normalfont\scshape} % Make all sections centered, the default font and small caps
+\usepackage{fancyhdr} % Custom headers and footers
+\pagestyle{fancyplain} % Makes all pages in the document conform to the custom headers and footers
+\fancyhead{} % No page header - if you want one, create it in the same way as the footers below
+\fancyfoot[L]{} % Empty left footer
+\fancyfoot[C]{} % Empty center footer
+\fancyfoot[R]{\thepage} % Page numbering for right footer
+\renewcommand{\headrulewidth}{0pt} % Remove header underlines
+\renewcommand{\footrulewidth}{0pt} % Remove footer underlines
+\setlength{\headheight}{13.6pt} % Customize the height of the header
+
+\setlength\parindent{0pt} % Removes all indentation from paragraphs - comment this line for an assignment with lots of text
+
+
+ 
+
+
+
+%----------------------------------------------------------------------------------------
+%	TITLE SECTION
+%----------------------------------------------------------------------------------------
+
+\newcommand{\horrule}[1]{\rule{\linewidth}{#1}} % Create horizontal rule command with 1 argument of height
+
+\fancyhf{}% Clear all headers/footers
+\fancyhead[L]{Master Thesis Project}\fancyhead[C]{}\fancyhead[R]{Alessandro Bellotta}
+\fancyfoot[L]{USI - Università della Svizzera Italiana, MSc in Finance}\fancyfoot[C]{}\fancyfoot[R]{\thepage}
+\pagestyle{fancy}
+\thispagestyle{plain}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+\title{	
+\normalfont \normalsize 
+\textsc{USI - Università della Svizzera Italiana, MSc in Finance} \\ [100pt] % Your university, school and/or department name(s)
+\horrule{0.5pt} \\[0.4cm] % Thin top horizontal rule
+\huge Master Thesis Project \\ % The assignment title
+\horrule{2pt} \\[0.5cm] % Thick bottom horizontal rule
+}
+
+\author{Alessandro Bellotta} % Your name
+
+\date{October 5, 2016} 
+
+\begin{document}
+
+\maketitle \thispagestyle{empty}% Print the title
+\newpage
+\tableofcontents
+\newpage 
+
+
+%------------------------
+% ABSTRACT
+%------------------------	
+	
+	\section{Abstract}
+	The aim of this introductory project is to explain the upcoming analysis on which the master thesis will be based.
+	In this master thesis I want to analyse an alternative market view, other than the Black-Scholes-Merton framework.
+	Empirical evidence shows how this classical view is wrong and underperforming with respect to the real market expectation.
+	
+%------------------------
+% FINANCE AND PHYSICS
+%------------------------	
+	
+	\section{Finance and Physics}
+	Another well known concept is that finance is strictly correlated with (it derives from) physics. In the recent past, academics tried to name this phenomenon and they come out with "econophysics". 
+	From this field, I find out that an interesting physical theory was also applied in finance: this goes under the name of "Complexity Theory". It does not refer to finance in a mathematical way, rather in a computational framework.
+	
+	\subsection{Chaos and Fractals}
+	The possible area of application is the "Chaos Theory": it studies systems that appear to follow a random behaviour, but, indeed, they are part of a deterministic process. These systems are said to be mathematically deterministic because if the initial measurement were certain it would be possible to derive the endpoint of their trajectory.
+	These systems have two principal charateristics:
+	
+	\begin{itemize}
+		\item They are highly sensitive to changes in the initial condition; 
+		\item  They involve nonlinear feedback forces that can produce unexpected results
+	\end{itemize}
+	
+	The way in which we can analyse these chaotic systems is through fractals. Fractal is a shape made of parts similar to the whole in some way, thus they look (approximately) the same whatever scale they are observed. When fractals are scaled up/down by the same amount, they are said to be self-similar; if they are scaled more in one direction than another, they are self-affine. \par
+	Fractal dimension gives a qualitative measure of the degree of roughness, brokenness or irregularity of a fractal. \par
+	\textit{"Fractal geometry is about splitting repeating patterns, analyse, quantify and manipulate them: it is a tool of both analysis and synthesis." (Mandelbrot, 2004)}
+	
+%------------------------
+% FMH
+%------------------------		
+\newpage
+	\section{Fractal Market Hypothesis, FMH}
+		\begin{enumerate}
+			\item The market is stable when it consist of investors covering a large number of investment horizons. This ensure that there is ample liquidity for traders.
+			\item The information set is more related  to market sentiment and technical factors in the short term than in the longer term. As investment horizons increase, longer-term fundamental information dominates. Thus, price changes may reflect information important only to that investment horizon.
+			\item If an event occur that makes the validity of fundamental information questionable, long-term investors either stop participating in the market or begin trading based on the short-term information set. When the overall investment horizon of the market shrinks to a uniform level, the market becomes unstable. There are no long-term investors to stabilise the market by offering liquidity to short term investors.
+			\item Prices reflect a combination of short-term technical trading and long-term fundamental valuation. Thus, short term price changes are likely to be more volatile, or "noisier", than long-term trades. The underlying trend in the market is reflective of changes in expected earnings, based on the changing in the economic environment. Short-term trends are more likely the result of a crowd behaviour. There is no reason to believe that the length of the short-term trends is related to the long economic trend.
+			\item  If a security has no tie to the economic cycle, than there will be no long-term trend. Trading, liquidity and short-term information will dominate.
+		\end{enumerate}
+	
+
+%------------------------
+% PLAN
+%------------------------	
+
+	\newpage
+	\section{Plan of the discussion and Procedures}
+	I would like to link theory with a computational application. Thus, my aim will be: first, develop the theory and the computation in a theoretical way and then to build an algorithm that tracks the analysis and gives me the output for a possible trading strategy.
+	\subsection{Theory}
+		\subsubsection{Measuring memory}
+		In order to study these systems we need a probability theory that is nonparametric: we need a statistics that makes no prior assumption about the shape of the probability distribution.
+		A well-known, robust and nonparametric method was discovered by H.E.Hurst (\textit{"The Long-Term Storage Capacity of Reservoirs", 1951}): this "new" statistical methodology is able to distinguish random and nonrandom systems, trend persistency and duration of cycles. This method is called "Rescaled Range Analysis", R/S analysis, and it distinguishes random time series from fractal time series.
+		\subsubsection{Volatiliy}
+		Volatility creates antipersistency. The aim will be to analyse realised and implied volatility: antipersistency is characterised by more frequent reversals than in a random series; however, this does not mean that the process is mean reverting, just that it is reverting. Antipersistency also implies the absence of stable mean: there is nothing to revert to and the size of the reversion is itself random.
+	\subsection{Computational and Programming}
+		\subsubsection{Data}
+		First, I will need to decide where to apply the methodology: one, two, n asset-classes; linked or unlinked, build a portfolio.
+		\subsubsection{Comparison}
+		Build the data frame and start analysis through the fractal way: Memory, Fractal Dimension, Approximate Entropy, Cycle, Volatility. Then, I need to compare this analysis with the classical one, using "standard" indicators: AR, MA, ARMA, ARIMA, ARCH.
+		\subsubsection{Algorithm}
+		Once tested the analysis, I would write a program that gives as output a well-diversified fractal portfolio and some trading strategies.
+	
+%------------------------
+% CONCLUSION
+%------------------------		
+		
+	\section{Conclusion}
+	I hope that this analysis could create added value to a trading strategies: in the recent past, hedge funds tried to create value to their clients' portfolios through \textit{positive} $\alpha$ and \textit{smart} $\beta$, building quant strategies. I would like to start building a strategy based on different approaches: my aim is to create a program that can well-perform (possibly, better-perform) with respect to classical strategies.
+
+\end{document}

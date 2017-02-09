@@ -1,0 +1,14 @@
+\select@language {english}
+\contentsline {section}{\numberline {1}Abstract}{3}
+\contentsline {section}{\numberline {2}Finance and Physics}{3}
+\contentsline {subsection}{\numberline {2.1}Chaos and Fractals}{3}
+\contentsline {section}{\numberline {3}Fractal Market Hypothesis, FMH}{4}
+\contentsline {section}{\numberline {4}Plan of the discussion and Procedures}{5}
+\contentsline {subsection}{\numberline {4.1}Theory}{5}
+\contentsline {subsubsection}{\numberline {4.1.1}Measuring memory}{5}
+\contentsline {subsubsection}{\numberline {4.1.2}Volatiliy}{5}
+\contentsline {subsection}{\numberline {4.2}Computational and Programming}{5}
+\contentsline {subsubsection}{\numberline {4.2.1}Data}{5}
+\contentsline {subsubsection}{\numberline {4.2.2}Comparison}{5}
+\contentsline {subsubsection}{\numberline {4.2.3}Algorithm}{5}
+\contentsline {section}{\numberline {5}Conclusion}{6}

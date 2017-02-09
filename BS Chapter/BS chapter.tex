@@ -1,0 +1,418 @@
+\documentclass[paper=a4, fontsize=12pt]{scrartcl} % A4 paper and 11pt font size
+
+\usepackage[T1]{fontenc} % Use 8-bit encoding that has 256 glyphs
+%\usepackage{fourier} % Use the Adobe Utopia font for the document - comment this line to return to the LaTeX default
+\usepackage[english]{babel}
+\usepackage{amsmath} % Math packages
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage{afterpage}
+\usepackage{lipsum} % Used for inserting dummy 'Lorem ipsum' text into the template
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage{sectsty} % Allows customizing section commands
+\usepackage{fancyhdr}
+\usepackage{xcolor}
+\usepackage[nottoc]{tocbibind}
+\allsectionsfont{\centering \normalfont\scshape} % Make all sections centered, the default font and small caps
+\usepackage{fancyhdr} % Custom headers and footers
+\pagestyle{fancyplain} % Makes all pages in the document conform to the custom headers and footers
+\fancyhead{} % No page header - if you want one, create it in the same way as the footers below
+\fancyfoot[L]{} % Empty left footer
+\fancyfoot[C]{} % Empty center footer
+\fancyfoot[R]{\thepage} % Page numbering for right footer
+\renewcommand{\headrulewidth}{0pt} % Remove header underlines
+\renewcommand{\footrulewidth}{0pt} % Remove footer underlines
+\setlength{\headheight}{13.6pt} % Customize the height of the header
+\setlength\parindent{0pt} % Removes all indentation from paragraphs - comment this line for an assignment with lots of text
+\numberwithin{equation}{section}
+
+\newcommand\blankpage{%
+    \null
+    \thispagestyle{empty}%
+    \addtocounter{page}{-1}%
+    \newpage}
+    
+
+\makeatletter
+\newcommand{\distas}[1]{\mathbin{\overset{#1}{\kern\z@\sim}}}%
+\newsavebox{\mybox}\newsavebox{\mysim}
+\newcommand{\distras}[1]{%
+  \savebox{\mybox}{\hbox{\kern3pt$\scriptstyle#1$\kern3pt}}%
+  \savebox{\mysim}{\hbox{$\sim$}}%
+  \mathbin{\overset{#1}{\kern\z@\resizebox{\wd\mybox}{\ht\mysim}{$\sim$}}}%
+}
+\makeatother
+
+\makeatletter
+\renewcommand\paragraph{\@startsection{paragraph}{4}{\z@}%
+            {-2.5ex\@plus -1ex \@minus -.25ex}%
+            {1.25ex \@plus .25ex}%
+            {\normalfont\normalsize\bfseries}}
+\makeatother
+\setcounter{secnumdepth}{4} % how many sectioning levels to assign numbers to
+\setcounter{tocdepth}{4}    % how many sectioning levels to show in ToC
+
+
+
+\usepackage{listings}
+\usepackage{color}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{frame=tb,
+  language=R,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3
+}
+
+
+
+\begin{document}
+\tableofcontents
+\section{Black-Scholes Model}
+In this section we deal with the Black-Scholes model which represents the keystone for option pricing theory. It was developed by Fisher Black and Myron Scholes in 1973 and it is based on stochastic and differential calculus. \par
+In the next sections we develop the basic concepts and the mathematics behind the formula and then we show the theoretical model and our implementation in which we extensive use of Monte Carlo simulation and its variance control techniques. \par
+
+\subsection{Brownian Motion: the Basic of BS Model}
+The Brownian Motion was firstly theorised and observed by the botanist Robert Brown in 1827 and it was defined, by Richard Feynman \cite{feynman}, as: \textit{"the random motion of particles suspended in a fluid resulting from their collision with the fast-moving atoms or molecules in the gas or liquid"}.	\par
+When we deal with finance, we refer to this movement as Wiener Process which is a continuous-time stochastic process. It is useful in option pricing and, as a result, in the Black-Scholes model (and other models after that).	\par
+Now, we define mathematically what it is a Brownian Motion \cite{shreve}.	\par
+Let's define a probability space ($\Omega, \mathcal{F}, \mathcal{P}$). For each $\omega  \in \Omega$, suppose there is a continuous function ${W}(t)$ that satisfies the initial condition ${W}(0) = 0$ and that depends on $\omega$. Then ${W}(t)$, $t\geq0$, is a Brownian Motion if for all $0 = t_0<t_1<...<t_m$, the increment
+
+		\begin{equation}	
+		\begin{aligned}
+			{W}(t_1) = {W}(t_1)-{W}(t_0), {W}(t_2) - {W}(t_1), ... , {W}(t_m)-{W}(t_{m-1}) 
+		\end{aligned}
+		\end{equation}
+are independent and each of this increments is normally distributed with
+		\begin{equation}	
+		\begin{aligned}
+			\mathbb{E}[{W}(t_{i+1}) - {W}(t_i)] &= 0 \\
+			Var[{W}(t_{i+1}) - {W}(t_i)] &= t_{i+1} - t_i
+		\end{aligned}
+		\end{equation}
+
+\subsubsection{Distribution}
+Because the increments are independent and normally distributed, the random variables are jointly normally distributed. \par
+The joint distribution of jointly random variables is determined by their means and covariances. Each of the variables ${W}(t_i)$ has mean zero. For any two times, $0 \leq s \leq t$, the covariance of ${W}(s)$ and ${W}(t)$ is, 
+
+		\begin{equation}	
+		\begin{aligned}
+			\mathbb{E}[{W}(s){W}(t)]   &= \mathbb{E}[{W}(s) ({W}(t) - {W}(s)) + {W}^2(s)] \\
+								&= \mathbb{E}[{W}(s) \cdot \mathbb {E}[{W}(t) - {W}(s)] + \mathbb{E}[{W}^2(s)] \\
+								&= 0 + Var[W(s)] \\
+								&= s
+		\end{aligned}
+		\end{equation}
+
+\subsubsection{Properties of Brownian Motion}
+\paragraph{Filtration}
+Filtration is the notation useful to understand what is the amount of information available at each time.\par
+Let ($\Omega, \mathcal{F}, \mathcal{P}$) be a probability space on which is defined a Brownian Motion $W(t), t \geq 0$. A filtration for the Brownian Motion is a collection of $\sigma$-algebrae $\mathcal{F}(t), t \geq 0$, satisfying:
+	\begin{itemize}
+		\item \textbf{Information accumulates}: there is at least as much information available at the later time $\mathcal{F}(t)$ as there is at the earlier time $\mathcal{F}(s)$.
+		\item \textbf{Adaptivity}: the information available at time $t$ is sufficient to evaluate the Brownian Motion $W(t)$ at that time.
+		\item \textbf{Independence of future increments}: any increment of the Brownian Motion after time $t$ is independent of the information available at time $t$.
+	\end{itemize}
+
+\paragraph{Martingality}
+A Martingale is a stochastic process for which the expectation of the next value is equal to the present observed value.	\par
+Brownian Motion is a martingale. \par 
+Let $ 0 \leq s \leq t$ be given. Then
+
+		\begin{equation}	
+		\begin{aligned}
+			\mathbb{E}[W(t)|\mathcal{F}(t)] &= \mathbb{E}[(W(t)-W(s)) + W(s) | \mathcal{F}(s)] \\
+									&= \mathbb{E}[(W(t)-W(s))|\mathcal{F}(s)] + \mathbb{E}[W(s) | \mathcal{F}(s)] \\
+									&= \mathbb{E}[W(t)-W(s)] + W(s)\\
+									&= W(s)
+		\end{aligned}
+		\end{equation}
+
+\paragraph{Markovianity}
+A Markov Process is a random process whose future probabilities are determined by its most recent values \cite{papoulis} \cite{weisstein} . \par
+A stochastic process $x(t)$ is called Markov if for every $n$ and $t_1<t_2...<t_n$, we have
+	\begin{equation}
+ 		P(x(t_n) \leq x_n | x(t_{n-1}),...,x(t_1))  = P(x(t_n) \leq x_n | x(t_{n-1})). 
+	\end{equation}
+Let ($\Omega, \mathcal{F}, \mathcal{P}$) be a Brownian Motion and let $\mathcal{F}(t), t \geq 0$, be a filtration for this Brownian Motion. Then $W(t), t \geq 0$, is a Markov process.
+
+\subsection{Stochastic Calculus: the mathematics behind the BS model}
+In this section we deal with stochastic calculus by defining It\={o} integrals and their properties: these are useful feature when we want to model asset values in continuous-time.
+
+
+
+
+\subsubsection{It\={o}'s integral}
+Let's define the It\={o}'s integral
+
+		\begin{equation}
+			\int_0^T \Delta(t) dW(t).
+		\end{equation}
+
+for integrands $\Delta(t)$ that are allowed to vary continuously with time and also to jump. In particular, we no longer assume that $\Delta(t)$ is a simple process. We do assume that $\Delta(t), t \geq 0$, is adapted to the filtration $\mathcal{F}(t), t \geq 0$. \par
+We also assume that the square-integrability condition
+		\begin{equation}
+			\mathbb{E} \int \Delta^2(t)dt < \infty.
+		\end{equation}
+In general it is possible to choose a sequence $\Delta_n(t)$ of simple processes such that as $n \rightarrow \infty$ these processes converge to the continuously varying $\Delta(t)$. By convergence, 
+	\begin{equation}
+		\lim_{n \to \infty} |\Delta_n(t) - \Delta(t)|^2 dt = 0.
+	\end{equation}
+Thus, we can define the It\={o}'s integral for the continuously varying integrand $\Delta(t)$ by the formula
+	\begin{equation}
+		\int_0^t \Delta(u) dW(u) = \lim_{n \to \infty} \int_0^t \Delta_n(u) dW(u), \hspace{0.5cm}0 \leq t \leq T. 
+	\end{equation}
+
+
+\subsubsection{Properties}
+Let $T$ be a positive constant and let $\Delta(t), 0 \leq t \leq T$, be an adapted stochastic process. Then $I(t) = \int_0^t \Delta(u) dW(u)$ has the following properties.
+	\begin{itemize}
+		\item \textbf{Continuity}: as a function of the upper limit of the integration t, the paths of $I(t)$ are continuous.
+		\item \textbf{Adaptivity}: for each $t, I(t) is \mathcal{F}(t)$-measurable.
+		\item \textbf{Linearity}: if $I(t) = \int_0^t \Delta(u) dW(u)$ and $J(t) = \int_0^t \Gamma(u)dW(u)$, then $I(t)+J(t) = \int_0^t (\Delta(u) + \Gamma(u)) dW(u)$.
+		\item \textbf{Martingality}: $I(t)$ is a martingale.
+		\item \textbf{It\={o} isometry}: $\mathbb{E}I^2(t) = \mathbb{E} \int_0^t \Delta^2(u) du$.
+		\item \textbf{Quadratic variation}: $[I,I](t) = \int_0^t\Delta^2(u)du$.
+	\end{itemize}
+
+\subsubsection{It\={o} Formula for Brownian Motion}
+Let $f(t,x)$ be a function for which the partial derivatives $f_t (t,x), f_x (t,x)$ and $f_{xx}(x,t)$, are defined and continuous, and let $W(t)$ be a Brownian Motion.\par
+Then, for every $T \leq 0$, 
+	\begin{equation}
+		f(T,W(T)) = f(0, W(0)) + \int_0^T f_t (t, W(t)) dt + \int_0^T f_x (t, W(t)) dW(t) + \frac{1}{2} \int_0^T f_{xx} (t, W(t)) dt.
+	\end{equation}
+
+\subsubsection{It\={o} Formula for It\={o} process}
+Let $X(t), t \leq 0$, be an It\={o} process, and let $f(t, x)$ be a function for which the partial derivatives $f_t(t, x), f_x(t, x)$ and $f_{xx} (t, x)$ are defined and continuous. \par
+Then, for every $T \leq 0$, 
+	\begin{equation}
+		df(t, X(t)) = f_t (t, X(t)) dt + f_x (t, X(t)) dX(t) + \frac{1}{2} f_{xx} (t, X(t)) dX(t)dX(t).
+	\end{equation}
+
+\subsubsection{Girsanov's Theorem}
+Here, we deal with risk-neutral pricing.	\par
+Let ($\Omega, \mathcal{F}, \mathcal{P}$) be a probability space and $Z$ be a non negative random variable satisfying $\mathbb{E}Z = 1$. Then let $\widetilde{P}$ be a new probability measure defined as
+	\begin{equation}
+		\widetilde{P}(A) = \int_A Z(w)dP(w), \hspace{0.5cm} \forall A \in \mathcal{F}
+	\end{equation}
+
+Any random variable $X$ has two expectation, one under the original probability measure $P$, denoted as $\mathbb{E}P$, and the other under the new probability measure $\widetilde{P}$, denoted as $\widetilde{\mathbb{E}}P$.
+These are related by the formula 
+	\begin{equation}
+		\widetilde{\mathbb{E}}X = \mathbb{E}[XZ].
+	\end{equation}
+
+If $P[Z<0] = 1$, then $P$ and $\widetilde{P}$ agree. Thus, $\mathbb{E}X = \widetilde{\mathbb{E}} [\frac{X}{Z}]$.
+Z is the \textit{Radon-Nikodym derivative} of $\widetilde{P}$ with respect to $P$; so, $Z = \frac{d\widetilde{P}}{dP}$.
+
+Now, let $\Theta(t)$ be an adapted process. Define
+	\begin{equation}
+	\begin{aligned}
+		Z(t) &= exp \bigg\{ -\int_0^t \Theta(u) dW(u) - \frac{1}{2} \int_0^t \Theta^2(u) du \bigg\}, \\
+		\widetilde{W}(t) &= W(t) + \int_0^t \Theta(u) du,
+	\end{aligned}
+	\end{equation}	
+and assume that 
+	\begin{equation}
+		\mathbb{E} \int_0^T \Theta^2(u)Z^2(u) du < \infty.
+	\end{equation}
+
+Set $Z = Z(T)$. Then $\mathbb{E}Z = 1$ and under $\widetilde{P}$ the process $\widetilde{W}$ is a Brownian Motion.	
+
+%---- FTAP ----
+\subsubsection{Fundamental Theorems of Asset Pricing}
+The first fundamental theorem of asset pricing states that if a market model has a risk-neutral probability measure, then it does not admit arbitrage.\par
+The second fundamental theorem of asset pricing states that taking into account a market model that has a risk-neutral probability measure we can affirm that it is complete if and only if the risk-neutral probability measure is unique. 
+
+
+\subsection{The Model}
+In deriving their formula, Black and Scholes \cite{black-scholes} assumed "ideal condition" in the market for the stock and for the derivative. They can be summarized as follows:
+	\begin{itemize}
+		\item The stock price follows a Brownian Motion with mean and standard deviation constant.
+		\item The short selling of securities with full use of proceeds is permitted.
+		\item There are no transaction costs or taxes. All securities are perfectly divisible.
+		\item There are no dividends during the life of the derivative.
+		\item There are no riskless arbitrage opportunities.
+		\item Securities are traded continuously.
+		\item The risk-free interest rate is constant and the same for all maturities.
+	\end{itemize}
+Our aim is to get to the option price of a European call which payoff is $V(T) = (S(T) - K)^+$
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\newpage
+\bibliographystyle{unsrt}
+\begin{thebibliography}{9}
+
+\bibitem{feynman}
+Richard Feynman: The Feynman Lectures on Physics Vol I, Addison Wesley Longman, CalTech, 1970
+
+\bibitem{papoulis}
+A Papoulis: Brownian Movement and Markov Processes, Ch. 15 in Probability, Random Variables, and Stochastic Processes, 2nd ed. New York: McGraw-Hill, pp. 515-553, 1984.
+
+\bibitem{weisstein}
+ Eric W. Weisstein: Markov Process,  From MathWorld--A Wolfram Web Resource, {\color{blue}{http://mathworld.wolfram.com/MarkovProcess.html}}
+ 
+\end{thebibliography}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\end{document}
