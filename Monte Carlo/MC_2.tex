@@ -1,0 +1,278 @@
+\documentclass[paper=a4, fontsize=12pt]{scrartcl} % A4 paper and 11pt font size
+
+\usepackage[T1]{fontenc} % Use 8-bit encoding that has 256 glyphs
+%\usepackage{fourier} % Use the Adobe Utopia font for the document - comment this line to return to the LaTeX default
+\usepackage[english]{babel}
+\usepackage{amsmath} % Math packages
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage{afterpage}
+\usepackage{lipsum} % Used for inserting dummy 'Lorem ipsum' text into the template
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage{sectsty} % Allows customizing section commands
+\usepackage{fancyhdr}
+\usepackage{xcolor}
+\usepackage[nottoc]{tocbibind}
+\allsectionsfont{\centering \normalfont\scshape} % Make all sections centered, the default font and small caps
+\usepackage{fancyhdr} % Custom headers and footers
+\pagestyle{fancyplain} % Makes all pages in the document conform to the custom headers and footers
+\fancyhead{} % No page header - if you want one, create it in the same way as the footers below
+\fancyfoot[L]{} % Empty left footer
+\fancyfoot[C]{} % Empty center footer
+\fancyfoot[R]{\thepage} % Page numbering for right footer
+\renewcommand{\headrulewidth}{0pt} % Remove header underlines
+\renewcommand{\footrulewidth}{0pt} % Remove footer underlines
+\setlength{\headheight}{13.6pt} % Customize the height of the header
+\setlength\parindent{0pt} % Removes all indentation from paragraphs - comment this line for an assignment with lots of text
+\numberwithin{equation}{section}
+
+\makeatletter
+\newcommand{\distas}[1]{\mathbin{\overset{#1}{\kern\z@\sim}}}%
+\newsavebox{\mybox}\newsavebox{\mysim}
+\newcommand{\distras}[1]{%
+  \savebox{\mybox}{\hbox{\kern3pt$\scriptstyle#1$\kern3pt}}%
+  \savebox{\mysim}{\hbox{$\sim$}}%
+  \mathbin{\overset{#1}{\kern\z@\resizebox{\wd\mybox}{\ht\mysim}{$\sim$}}}%
+}
+\makeatother
+
+\newcommand\blankpage{%
+    \null
+    \thispagestyle{empty}%
+    \addtocounter{page}{-1}%
+    \newpage}
+
+\usepackage{listings}
+\usepackage{color}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{frame=tb,
+  language=R,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3
+}
+
+\begin{document}
+\section{Monte Carlo Methods}
+\subsection{Introduction}
+Monte Carlo methods are computational algorithms that represent a milestone for financial application since it is a go-to way to obtain numerical results by relying on random sampling.	\par
+Two of the numerical problems in statistical inference and, consequently, in finance, are optimization and integration. When we approach any sort of statistical inference, we are led to take into account numerical solutions.	\par
+The main issue with numerical integration methods is that they are not always able to spot the support of a function to be integrated. Another problem that we face in numerical integration is that it can't easily deal with multidimensional integrals: by splitting the problem in pieces we increase the cost of computation.  \par
+A solution is to use simulation methods that can't be wrong since they exploit information included in the probability density associated with the integrals and are faster with respect to numerical integration methods.	\par
+
+\subsection{Monte Carlo Integration}
+By approaching Monte Carlo integration, the main problem is to solve the integral:
+	\begin{equation}	\label{eq:1}
+	\begin{aligned}
+		\mathbb{E}_f[h(x)] &= \int_\chi h(x)f(x)dx,
+	\end{aligned}
+	\end{equation}
+where $\chi$ represents the support of the density $f$. \par
+By using Monte Carlo we want to approximate this function by generate a sample $(X_1, ..., X_n)$ from $f$ with the empirical average:
+
+	\begin{equation}	
+	\begin{aligned}
+		\overline{h}_n = \frac{1}{n} \sum_{j=1}^{n} h(x_j).
+	\end{aligned}
+	\end{equation}
+By the Strong Law of Large Numbers, $\overline{h}_n$ converge to $\mathbb{E}_f[h(x)]$. \par
+The asymptotic variance of the approximation is
+
+		\begin{equation}	
+			var(\overline{h}_n) = \frac{1}{n} \int_\chi (h(x) - \mathbb{E}_f[h(x)])^2 f(x)d(x),
+		\end{equation}
+		
+which can be estimated from the sample
+
+		\begin{equation}	
+			v_n = \frac{1}{n^2} \sum_{j=1}^{n} [h(x_j) - \overline{h}_n]^2
+		\end{equation}
+
+and, due to the Central Limit Theorem, for large $n$,
+		\begin{equation}	
+			\frac{\overline{h}_n -  \mathbb{E}_f[h(x)]}{\sqrt{v_n}} \distras{  } N(0,1).
+		\end{equation}	
+
+%--------------------------
+
+\subsection{Improve the quality} 
+There are two main approach in order to improve the quality of the estimation: the first is to increase $n$: it improves the estimate, but the rate of decrease is about $O(1/\sqrt{n})$; it means that the rate of improvement is getting slower as we keep adding samples.	\par
+The second is to decrease $\sigma$: in order to achieve this, we can apply various variance reduction techniques: Importance Sampling, Antithetic Variance, Control Variance, Conditional Monte Carlo.
+In the following subsection we show how to use variance reduction techniques. \cite{casella2010}
+
+\subsubsection{Importance Sampling}
+This method is based on importance functions which are fictitious distribution, instead of the original ones. Evaluating \ref{eq:1} by drawing from $f$ is not optimal since the use of other distribution can improve the variance of the estimator.	\par
+It is possible to represent \ref{eq:1} in terms of an alternative density $g > 0$ when $h \times f \neq 0$ in the following way:
+		\begin{equation}	
+		\begin{aligned}
+			\mathbb{E}_f[h(x)] &= \int_\chi h(x) \frac{f(x)}{g(x)} g(x) dx \\
+						     &=  \mathbb{E}_g \bigg[ \frac{h(X)f(X)}{g(X)} \bigg]
+		\end{aligned}
+		\end{equation}
+
+This importance sampling fundamental identity justifies the use of the estimator
+		\begin{equation}	\label{q:2}
+		\begin{aligned}
+			\frac{1}{n}  \sum_{j=1}^{n} \frac{f(X_j)}{g(X_j)} h(X_j) \rightarrow \mathbb{E}_f [h(X)]
+		\end{aligned}
+		\end{equation}
+Importance sampling is important since we have to deal with a small amount of restriction on the choice of $g$; we are able to chose either from easy-to-simulate or from efficient in the approximation distribution.	\par
+On one hand, importance sampling is highly versatile but this property could produce poor outcomes. It is important to consider the variance of the estimator when analysing the fairness of the function $g$. \par
+While \ref{eq:2} converges to \ref{eq:1}, the variance of the estimator is finite only when:
+	\begin{equation}
+	\begin{aligned}
+		\mathbb{E}_g \bigg[h^2(X) \frac{f^2(X)}{g^2(X)} \bigg] &= \mathbb{E}_f \bigg[h^2(X) \frac{f(X)}{g(X)} \bigg] 	
+		&= \int_\chi h^2(X) \frac{f^2(X)}{g(X)} dx < \infty
+	\end{aligned}
+	\end{equation} 
+is finite. This condition does not forbid functions with lighter tail than $f$ but rather it states that those function could led to infinite variance estimator.
+
+\subsubsection{Antithtetic variates}
+The basic concept of this methodology is that by including correlation we can obtain higher efficiency. \par
+
+Given two samples $(X_1, ..., X_n)$ and $(Y_1, ..., Y_n)$ from $f$ used for the estimation of
+		\begin{equation}	
+		\begin{aligned}
+			I &= \int_R h(x)f(x)dx,
+		\end{aligned}
+		\end{equation}
+
+the estimator
+		\begin{equation}	
+		\begin{aligned}
+			\frac{1}{2n} \sum_{i=1}^{n} [h(X_i) + h(Y_i)]
+		\end{aligned}
+		\end{equation}
+
+is more efficient than the estimator based on the iid sample of size $2n$ if the variables $h(X_i)$ and $h(Y_i)$ are negatively correlated. In this framework, the $Y_i$'s are the antithetic variables. \par
+It is not always possible to create negative correlation for an arbitrary transform $h$, even when $corr(X_i,Y_i) < 0$ . A solution, proposed by Rubinstein (1981) \cite{rubinstein81}, is to use uniform variables $U_i$ to generate the $X_i$'s as $X_i = F^-(U_i)$ and the $Y_i$'s as $Y_i = F^-(1-U_i)$.
+
+
+
+
+
+
+\subsubsection{Control variates}
+It happens, sometimes, that we know the mean of some functions $h_0$ under $f$. The control variates technique reduce the variance by exploiting this information. If $\delta_1$ is an estimator of $I$ and $\delta_3$ is an unbiased estimator of $\mathbb{E}_f [h_0(X)]$, consider the weighted estimator
+
+		\begin{equation}	
+		\begin{aligned}
+			\delta_2 &= \delta_1 + \beta(\delta_3 - \mathbb{E}_f [h_0(X)])
+		\end{aligned}
+		\end{equation}
+		
+The estimators $\delta_1$ and $\delta_2$ have the same mean and
+		\begin{equation}	
+		\begin{aligned}
+			var(\delta_2) &= var(\delta_1) + \beta^2var(\delta_3) + 2\beta cov(\delta_1, \delta_3)
+		\end{aligned}
+		\end{equation}
+
+For the optimal choice,
+
+		\begin{equation}	
+		\begin{aligned}
+			\beta^* &= -\frac{cov(\delta_1, \delta_3)}{var(\delta_3)}
+		\end{aligned}
+		\end{equation}
+		
+getting, 
+
+		\begin{equation}	
+		\begin{aligned}
+			\frac{var(\delta_2)}{var(\delta_1)} &= (1-\rho_{13}^2)
+		\end{aligned}
+		\end{equation}
+where $\rho_{13}^2$ is the correlation coefficient between $\delta_1$ and $\delta_3$; by doing this, the control variate brings to a decreased variance for $\delta_2$
+
+\subsubsection{Conditioning}
+To estimate $\theta = \mathbb{E}[X]$ is sometimes useful to condition with respect to another variable $Y$:
+
+		\begin{equation}	
+		\begin{aligned}
+			\mathbb{E}[X] &= \mathbb{E}[\mathbb{E}[X|Y]]
+		\end{aligned}
+		\end{equation}
+		
+since $Var(X) \geq Var(\mathbb{E}[X|Y])$ as shown by the conditional variance formula:
+
+		\begin{equation}	
+		\begin{aligned}
+			Var(X) &= \mathbb{E}[Var(X|Y)]+ Var(\mathbb{E}[X|Y])
+		\end{aligned}
+		\end{equation}
+
+we know that:$\mathbb{E}[X|Y]$ is an unbiased estimator for $\theta$ which helps to reduce variance and if $\mathbb{E}[X|Y]$ can be correctly computed the additional noise coming from simulating $X$ given $Y$ can be eliminated.
+
+\subsection{Monte Carlo for Option Pricing}
+In terms of theory, Monte Carlo valuation relies on risk neutral valuation. Here, the price of an option is its discounted expected value. \par
+First, we need to generate a large number of random price paths for the underlying via simulation: in order to get it, we draw from a prior distribution and then we compute the value of the option for each path. 	\par
+These payoffs are then averaged and discounted: the result is the value of the option.	\par
+This approach, although, is relatively straightforward; it allows for increases in complexity: an option on equity may be modelled with one source of uncertainty which is the price of the underlying stock.\par
+Here the price of the underlying instrument $S_{t}$, is usually modelled such that it follows a geometric Brownian motion with constant drift $\mu$, and volatility $\sigma$. \par
+	Thus: 
+	
+		\begin{equation}	
+		\begin{aligned}
+			dS_{t}&=\mu S_{t}dt+\sigma S_{t},dW_{t} 
+		\end{aligned}
+		\end{equation}
+	
+where $dW_{t}$, is found by drawing from a Gaussian. This approach brings to the first covered model: Black-Scholes Model.
+Then, we can use Monte Carlo method to price more complex derivatives via simulation.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\newpage
+\bibliographystyle{unsrt}
+\begin{thebibliography}{9}
+
+
+\bibitem{casella2010}
+Christian P. Robert \& George Casella: Introducing Monte Carlo Methods with R, Springer, 2010
+
+\bibitem{rubinstein81}
+Reuven Y. Rubinstein \& Dirk P. Kroese: Simulation and the Monte Carlo Method, Wiley, New York, 1981
+
+
+\end{thebibliography}
+\end{document}
+
