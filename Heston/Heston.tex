@@ -1,0 +1,175 @@
+\documentclass[paper=a4, fontsize=12pt]{scrartcl} % A4 paper and 11pt font size
+
+\usepackage[T1]{fontenc} % Use 8-bit encoding that has 256 glyphs
+%\usepackage{fourier} % Use the Adobe Utopia font for the document - comment this line to return to the LaTeX default
+\usepackage[english]{babel}
+\usepackage{amsmath} % Math packages
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage{afterpage}
+\usepackage{lipsum} % Used for inserting dummy 'Lorem ipsum' text into the template
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage{sectsty} % Allows customizing section commands
+\usepackage{fancyhdr}
+\usepackage[nottoc]{tocbibind}
+\allsectionsfont{\centering \normalfont\scshape} % Make all sections centered, the default font and small caps
+\usepackage{fancyhdr} % Custom headers and footers
+\pagestyle{fancyplain} % Makes all pages in the document conform to the custom headers and footers
+\fancyhead{} % No page header - if you want one, create it in the same way as the footers below
+\fancyfoot[L]{} % Empty left footer
+\fancyfoot[C]{} % Empty center footer
+\fancyfoot[R]{\thepage} % Page numbering for right footer
+\renewcommand{\headrulewidth}{0pt} % Remove header underlines
+\renewcommand{\footrulewidth}{0pt} % Remove footer underlines
+\setlength{\headheight}{13.6pt} % Customize the height of the header
+\setlength\parindent{0pt} % Removes all indentation from paragraphs - comment this line for an assignment with lots of text
+\numberwithin{equation}{section}
+
+\newcommand\blankpage{%
+    \null
+    \thispagestyle{empty}%
+    \addtocounter{page}{-1}%
+    \newpage}
+
+\begin{document}
+\section{Heston model}
+The aim of this chapter is to analyse and implement another option pricing model: in this specific case we deal with the Heston model \cite{heston93}. This model, published in 1993, derives from the over-mentioned Black-Scholes-Merton model but it is different because it takes into account for stochastic volatility: this definition means that the variance of the covered processes it is no more a scalar but rather it is itself random.	
+
+\subsection{The Model}
+This model aims to derive a closed-form solution to price a European Call option, by taking into account stochastic volatility. The methodology is based on characteristic functions and on differential calculus. \par
+We firstly define the mathematics underneath the model. \par
+Let's assume that the underlying asset, at time $t$, follows this process:
+
+	\begin{equation}
+		dS(t) = \mu S dt + \sqrt{v(t)} S dz_1(t)
+	\end{equation}
+where $z_1(t)$ is a Brownian Motion. Now, if the volatility follows an Ornstein-Uhlenbeck process, we can write the process of the volatility as follows:
+	\begin{equation}
+		d \sqrt{v(t)} = -\beta \sqrt{v(t)} dt + \delta dz_2(t).
+	\end{equation}
+By applying It\={o}'s calculus, it is possible to show that the process followed by $v(t)$ is:
+	\begin{equation}
+		dv(t) = [\delta^2 - 2 \beta v(t)]dt + 2 \delta \sqrt{v(t)} dz_2(t)
+	\end{equation}
+Then, by manipulation, we can write the above equation as the well-known square-root process from Cox, Ingersoll and Ross(1985) \cite{cir} 
+	\begin{equation}
+		dv(t) = \kappa[\theta - v(t)] dt + \sigma \sqrt{v(t)}dz_2(t)
+	\end{equation}
+where $corr(z_1(t), z_2(t)) = \rho$.
+Let's define the price of a discount bond:
+	\begin{equation}
+		P(t, t+\tau) = e^{-r \tau}
+	\end{equation}
+Now, by standard arbitrage arguments \cite{black-scholes73} we know that any asset $U(S, v, t)$ must satisfy the following PDE:
+	\begin{equation}
+	\begin{aligned}
+		& \frac{1}{2} vS^" \frac{\partial^2 U}{\partial S^2} + \rho \sigma vS \frac{\partial^2 U}{\partial S \partial v} + \frac{1}{2}  \sigma^2 v  \frac{\partial^2 U}{\partial v^2} + rS \frac{\partial U}{\partial S}  \\	
+		& +\{ \kappa [\theta - v(t)] - \lambda(S, v, t) \} \frac{\partial U}{\partial v} - rU +  \frac{\partial U}{\partial t} = 0
+	\end{aligned}
+	\end{equation}
+$\lambda(S, v, t)$ is the price of volatility risk and it is independent from the underlying asset. \par
+
+Here, we want to define the PDE and the boundary conditions that a European Call option must satisfy.
+	\begin{equation}
+	\begin{aligned}
+		U(S, v, T) &= Max(0, S-K),	\\
+		U(0, v, t) &= 0,		\\
+		\frac{\partial U}{\partial S} (\infty, v, t) &= 1,	\\
+		rS \frac{\partial U}{\partial S} (S, 0, t) + \kappa \theta \frac{\partial U}{\partial v}(S, 0, t) 
+		-rU(S, 0, t) + U(S, 0, t) &= 0, 	\\
+		U(S, \infty, t) &= S.
+	\end{aligned}
+	\end{equation}
+In order to be comparable to what delivered by Black-Scholes in their paper, we want to arrive to a solution of the form:
+	\begin{equation}
+		C(S, v, t) = SP_1 - KP_2 e^{-r \tau}
+	\end{equation}  
+Let's switch to logarithms. Define $x = ln(S)$. \par
+Now, by plugging-in the above formula into the PDE equation it is possible to show that $P_1$ and $P_2$ must satisfy:
+	\begin{equation}
+	\begin{aligned}
+		& \frac{1}{2} v \frac{\partial^2 P_j}{\partial x^2} + \rho \sigma v \frac{\partial^2 P_j}{\partial x \partial v} + \frac{1}{2}  \sigma^2 v  \frac{\partial^2 P_j}{\partial v^2} + (r + u_j v) \frac{\partial P_j}{\partial x}  \\	
+		& +(a - b_j v)  \frac{\partial P_j}{\partial v} + \frac{\partial P_j}{\partial t} = 0
+	\end{aligned}
+	\end{equation}
+for $j=1, 2$, where 
+
+	\begin{equation}
+	\begin{aligned}
+		u_1 &= \frac{1}{2}, \\
+		u_2 &= -\frac{1}{2},\\
+		a &= \kappa \theta,\\
+		b_1 &= \kappa + \lambda - \rho \sigma,\\
+		b_2 &= \kappa+\lambda.\\
+	\end{aligned}
+	\end{equation}
+$P_j$ are the conditional probabilities of the options to expire in-the-money: these probabilities are not directly in closed-form. But, we know that the process is exponentially affine thus, we also know that, once we get the characteristic functions, we can invert them in order to find the desired probabilities.
+So, define $f_1(x, v, T; \phi)$ and $f_2(x, v, T; \phi)$ characteristic function that have to satisfy the same PDEs subjected to the final condition:
+	\begin{equation}
+		f_j(x, v, T; \phi) = e^{i\phi x}
+	\end{equation} 
+By theory, if a process is exponentially affine, its solution is of the form:
+	\begin{equation}
+		f_j(x, v, t; \phi) = e^{A(T-t; \phi) + B(T-t;\phi)v + i \phi x}
+	\end{equation}
+Then, in the Heston case, the Riccati equations are defined as follows:
+	\begin{equation}
+	\begin{aligned}
+		A(\tau; \phi) &= r \phi i \tau + \frac{a}{\sigma^2} \bigg \{ (b_j - \rho \sigma \phi i + d) \tau - 2 ln \bigg [\frac{1-ge^{d\tau}}{1-g} \bigg] \bigg\}, \\
+		B(\tau; \phi) &= \frac{b_j - \rho \sigma \phi i + d}{\sigma^2} \bigg [ \frac{1-e^{d\tau}}{1-ge^{d\tau}} \bigg]
+	\end{aligned}
+	\end{equation}
+where
+	\begin{equation}
+	\begin{aligned}
+		g &= \frac{b_j - \rho \sigma \phi i + d}{b_j - \rho \sigma \phi i - d}, \\
+		d &= \sqrt{(\rho \sigma \phi i - b_j)^2 - \sigma^2(2u_j \phi i - \phi^2)}
+	\end{aligned}
+	\end{equation}
+Finally, as stated before, we need to invert the characteristic functions in order to get to probabilities:
+	\begin{equation}
+		P_j(x, v, T; ln[K]) = \frac{1}{2} + \frac{1}{\pi} \int_0^\infty Re \bigg[ \frac{e^{-i \phi ln[K]} f_j(x, v, T; \phi)}{i \phi} \bigg] d\phi.
+	\end{equation}
+
+\subsection{Features of stochastic volatility model}
+This section aims to analyse the effects of the stochastic volatility model: many of them are related to how the volatility evolves throughout its time-series. \par
+If we switch from physical to risk-neutral probability we are able to price options (as we state at the beginning, what we implement is a real-world approach thus, we compute values related to time-series rather than prices). In this framework, the model can be rewritten as follows:
+	\begin {equation}
+		dv(t) = \kappa^*[\theta^* - v(t)] dt + \sigma \sqrt{v(t)} dz_2(t)
+	\end{equation}
+where $\kappa^* = \kappa + \lambda$ and $\theta^* = \kappa \frac{\theta}{(\kappa - \lambda)}$.
+$\theta^*$ is the variance long-run mean and $\kappa^{*}$ is the speed of mean-reversion. \par
+If $\theta^*$ increases, the option price increases; $\kappa^{*}$ determines how weights are distributed between the current variance and $\theta^*$. When the movement of the mean-reversion is upward-sloping, the variance is stated to have a steady-state distribution with $mean = \theta^*$ \cite{cir}. \par
+In this way, we can to find a positive feature of the Black-Scholes model: since spot returns are asymptotically Gaussian, with $variance = \theta^*$, in the long-run, the model tends to work well for long-term options. \par
+It is important to keep in mind that implied variance $\theta^*$ and the "true" process variance may not be equal. We can impute this difference to the fact that we face more risk in exposing to changes in volatility.	\par
+The feature to be larger or smaller of $\theta^*$ with respect to the "true" volatility depends on the sign of $\lambda$. It is possible to estimate $\theta^*$ by using value related to the option price. Or, in alternative, it is possible to estimate $\theta$ and $\kappa$ from the "true" price process. \par
+The parameter $\rho$ affects the skewness of spot returns distribution: when $\rho > 0$, we face high variance when the underlying asset price increases; this will cause the right tail of the density to get "fatter". On the other side, the left tail of the distribution is linked to low variance and, so, it is not modified.	\par
+The parameter $\sigma$ controls the volatility of volatility. When $\sigma = 0$, the volatility is deterministic and the spot returns behave as a Gaussian distribution. In other cases we can face different effects: if the volatility is uncorrelated with spot returns, an increase in $\sigma$ increases the kurtosis of spot returns' distribution; in contrast, if we face correlation between volatility and spot returns, $\sigma$ produces skewness in the distribution.
+
+\subsection{Implementation}
+In this section we analyse the way in which Heston option pricing model was implemented. \par
+The common starting point is to price an option with built-in function. In this case, we decide to go for the NMOF package that stands for Numerical Methods and Optimization in Finance. Inside this package, it is possible to find a function called  $callHestoncf$ which computes the price of a European Call under the Heston model. In order to work, it needs some parameters: $S$ is the current stock price, $X$ is the strike price, $tau$ is the time to maturity, $r$ is the risk-free rate, $q$ is the dividend rate, $v0$ is the current variance, $vT$ is the long-run variance $rho$ is the correlation between spot and variance, $k$ is the speed of mean-reversion $sigma$ is the volatility of variance. \par
+It prices quite well from a theoretical point of view but the problem with this approach is that we just plug in values that we arbitrarily chose. \par
+From this thought, we start to develop our analysis which, in our opinion, should be, not only linked to the theory, but also coherent with the real-world framework. \par
+First of all, we fit a Garch model \cite{bollerslev86} in order to get an initial condition for the parameters.\par
+Then, we build a function, that aims to simulate the volatility process, deriving from the Ornstein and Uhlenbeck process \cite{ou}.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\end{document}
+    
+
+
